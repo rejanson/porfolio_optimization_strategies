@@ -1,4 +1,4 @@
-function [ x_optimal cash_optimal ] = strat_equally_weighted( x_init, cash_init, mu, Q, cur_prices )
+function [ x_optimal, cash_optimal, proportion_optimal ] = strat_equally_weighted( x_init, cash_init, mu, Q, cur_prices )
 %STRAT_EQUALLY_WEIGHTED Summary of this function goes here
 % “Equally weighted” (also known as “1/n”) portfolio strategy: asset weights are 
 % selected as wti = 1/n, where n is the number of assets. 
@@ -48,6 +48,7 @@ while cash_optimal < 0
         (sum(market_cap) - transaction_fees - cur_prices * x_optimal);
 end
 
+proportion_optimal = ones(N, 1) * 1/20 ;
 
 end
 

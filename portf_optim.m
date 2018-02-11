@@ -96,7 +96,8 @@ for (period = 1:N_periods)
       end
 
       % Compute strategy
-      [x{strategy,period} cash{strategy,period}] = fh_array{strategy}(curr_positions, curr_cash, mu, Q, cur_prices);
+      [x{strategy,period}, cash{strategy,period}, proportion{strategy,period}] = ...
+        fh_array{strategy}(curr_positions, curr_cash, mu, Q, cur_prices);
 
       % Verify that strategy is feasible (you have enough budget to re-balance portfolio)
       % Check that cash account is >= 0
@@ -139,7 +140,7 @@ for (period = 1:N_periods)
    end
 end
 
-subplot(2,2,[1,2]);
+% subplot(2,2,[1,2]);
 plot([1:N_periods + 1], [[1e6; 1e6; 1e6; 1e6] portfolio_cap]);
 legend('Buy and Hold', 'Equally Weighted', 'Min Variance', 'Max Sharpe');
 xlabel('Time Period');
@@ -153,7 +154,19 @@ ylabel('Stock');
 title('Shares of Min Variance');
 
 subplot(2, 2, 4);
-heatmap(cell2mat(x(4,:)));
+area(cell2mat(x(4,:)));
 xlabel('Period');
 ylabel('Stock');
 title('Shares of Max Sharpe');
+
+area(cell2mat(proportion(3,:))');
+xlabel('Period');
+ylabel('Stock');
+title('Proportional Shares of Min Variance');
+legend(tickers);
+
+area(cell2mat(proportion(4,:))');
+xlabel('Period');
+ylabel('Stock');
+title('Proportional Shares of Max Sharpe');
+legend(tickers);

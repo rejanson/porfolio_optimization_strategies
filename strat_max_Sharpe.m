@@ -1,4 +1,4 @@
-function [  x_optimal, cash_optimal ] = strat_max_Sharpe(  x_init, cash_init, mu, Q, cur_prices )
+function [  x_optimal, cash_optimal, proportion_optimal ] = strat_max_Sharpe(  x_init, cash_init, mu, Q, cur_prices )
 %STRAT_MAX_SHARPE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -6,7 +6,7 @@ portfolio_value =  cur_prices * x_init + cash_init;
 
 N = size(mu);
 N = N(1);
-risk_aversion = 15;
+risk_aversion = 5;
 % 
 % Aeq = ones(1, N);
 % beq = 1;
@@ -25,7 +25,7 @@ ret = -1 * mu;
 cplex = Cplex('QPproblem');
 cplex.Model.sense = 'minimize';
 
-cplex.Model.Q = Q;
+cplex.Model.Q = Q * risk_aversion;
 cplex.Param.qpmethod.Cur = 2; % Concurrent algorithm
 
 cplex.Model.obj = ret;

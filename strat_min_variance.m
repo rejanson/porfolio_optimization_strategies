@@ -1,4 +1,4 @@
-function [ x_optimal, cash_optimal ] = strat_min_variance(  x_init, cash_init, mu, Q, cur_prices )
+function [ x_optimal, cash_optimal, proportion_optimal ] = strat_min_variance(  x_init, cash_init, mu, Q, cur_prices )
 %STRAT_MIN_VARIANCE Summary of this function goes here
 %   Detailed explanation goes here
 
