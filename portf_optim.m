@@ -1,8 +1,8 @@
 clc;
-clear all;
+clear;
 format long
 
-addpath('\\SRVD\Homes$\wuzhongr\Documents\cplex\matlab\x64_win64');
+addpath('/Applications/CPLEX_Studio128/cplex/matlab/x86-64_osx');
 
 % Input files
 input_file_prices  = 'Daily_closing_prices.csv';
@@ -139,21 +139,21 @@ for (period = 1:N_periods)
    end
 end
 
-%subplot(2,2,[1,2]);
+subplot(2,2,[1,2]);
 plot([1:N_periods + 1], [[1e6; 1e6; 1e6; 1e6] portfolio_cap]);
 legend('Buy and Hold', 'Equally Weighted', 'Min Variance', 'Max Sharpe');
 xlabel('Time Period');
 ylabel('Portfolio Values');
 title('Portfolio Values of Strategies');
-% 
-% subplot(2, 2, 3);
-% heatmap(log(cell2mat(x(3,:)) + 1));
-% xlabel('Period');
-% ylabel('Stock');
-% title('Log Shares of Min Variance');
-% 
-% subplot(2, 2, 4);
-% heatmap(log(cell2mat(x(4,:)) + 1));
-% xlabel('Period');
-% ylabel('Stock');
-% title('Log Shares of Max Sharpe');
+
+subplot(2, 2, 3);
+heatmap((cell2mat(x(3,:))));
+xlabel('Period');
+ylabel('Stock');
+title('Shares of Min Variance');
+
+subplot(2, 2, 4);
+heatmap(cell2mat(x(4,:)));
+xlabel('Period');
+ylabel('Stock');
+title('Shares of Max Sharpe');
