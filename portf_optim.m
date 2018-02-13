@@ -63,7 +63,7 @@ r_rf = 0.025;
 % Number of strategies
 strategy_functions = {'strat_buy_and_hold' 'strat_equally_weighted' 'strat_min_variance' 'strat_max_Sharpe'};
 strategy_names     = {'Buy and Hold' 'Equally Weighted Portfolio' 'Mininum Variance Portfolio' 'Maximum Sharpe Ratio Portfolio'};
-N_strat = 4; % comment this in your code
+N_strat = 1; % comment this in your code
 %N_strat = length(strategy_functions); % uncomment this in your code
 fh_array = cellfun(@str2func, strategy_functions, 'UniformOutput', false);
 
@@ -170,3 +170,4 @@ xlabel('Period');
 ylabel('Stock');
 title('Proportional Shares of Max Sharpe');
 legend(tickers);
+
