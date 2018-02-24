@@ -1,4 +1,5 @@
-function [ x_optimal, cash_optimal, proportion_optimal] = strat_equal_risk_contr(x_init, cash_init, mu, Q, cur_prices )
+function [ x_optimal, cash_optimal, proportion_optimal] = strat_lever_equal_risk_contr(x_init, cash_init, mu, Q, cur_prices )
+
 %STRAT_EQUAL_RISK_CONTR Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -40,7 +41,7 @@ funcs.jacobianstructure = @computeJacobian;
 %ipopt 
 [proportion_optimal info] = ipopt(w0',funcs,options);
 proportion_optimal = proportion_optimal';
-x_optimal = round(proportion_optimal * portfolio_value ./ (cur_prices' + 1e-2));
+x_optimal = 2 * round(proportion_optimal * portfolio_value ./ (cur_prices' + 1e-2));
 
 %transaction cost 
 
@@ -50,21 +51,6 @@ cash_optimal = cash_init + ...
     (sum(cur_prices * x_init) - transaction_fees - cur_prices * x_optimal);
 
 %adjust transaction cost
-j = 0;
-cash_decrement = 1e2;
-while cash_optimal < 0
-%     for i = 1:N
-%         if x_optimal(i) > 0
-%             x_optimal(i) = x_optimal(i) - 1;
-%         endﬂ
-%     end
-    j = j + 1;
-    x_optimal = round(proportion_optimal * (portfolio_value -  cash_decrement * j) ...
-        ./ (cur_prices' + 1e-2));
-    transaction_fees = 5e-3 * sum(abs(x_optimal - x_init)' * cur_prices');
-    cash_optimal = cash_init + ...
-        (sum(cur_prices * x_init) - transaction_fees - cur_prices * x_optimal);
-end
 
 end
 
