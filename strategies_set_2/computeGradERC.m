@@ -10,25 +10,38 @@ global Q
      x = x';
   end
 
-  y = (Q*x) ; 
+  y = x .* (Q*x) ; 
   
   gval = [] ; 
   for z = 1:n
       xij = 0;
       for i = 1:n        
         for j = i+1:n
+%           if i == z
+%             gradI = y(z);
+%             %gradI = gradtemp(z);
+%             gradJ = Q(j,z)*x(z);
+%           elseif j == z
+%             gradI = Q(i,z)*x(z);
+%             gradJ = y(z);
+%             %gradJ = gradtemp(z);
+%           else
+%             gradI = Q(i,z)*x(z);
+%             gradJ = Q(j,z)*x(z);
+%           end
+          Qw = Q * x;
           if i == z
-            gradI = y(z);
-            %gradI = gradtemp(z);
-            gradJ = Q(j,z)*x(z);
-          elseif j == z
-            gradI = Q(i,z)*x(z);
-            gradJ = y(z);
-            %gradJ = gradtemp(z);
-          else
-            gradI = Q(i,z)*x(z);
-            gradJ = Q(j,z)*x(z);
+              gradI = Qw(i) + Q(i, i) * x(i);
+          else 
+              gradI = Q(i, z) * x(i);
           end
+              
+          if j == z
+              gradJ = Qw(j) + Q(j, j) * x(j);
+          else 
+              gradJ = Q(j, z) * x(j);
+          end
+          
           xij  = xij + ((y(i) - y(j)) * (gradI - gradJ));           
         end 
       end
@@ -46,14 +59,15 @@ global Q
   %  finite_diff
     grad = zeros(n, 1);
     diff = 1e-6;
+    
     for i = 1:n
         x_minus = x;
         x_minus(i) = x_minus(i) - diff;
         x_plus = x;
         x_plus(i) = x_plus(i) + diff;
-        result = (computeObjERC(x_plus) - computeObjERC(x_minus)) / 2 * diff;
+        result = (computeObjERC(x_plus) - computeObjERC(x_minus)) / (2 * diff);
         
         grad(i) = result;
     end
-    gval = grad;
+    %gval = grad;
 end
