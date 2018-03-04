@@ -17,7 +17,8 @@ A_ineq = [];
 b_ineql = [];
 b_inequ = [];
 
-w0 = repmat(1.0/N, N, 1);
+%w0 = repmat(1.0/N, N, 1);
+w0 = cur_prices' .* x_init / (cur_prices * x_init + cash_init);
 
 options.lb = zeros(1,N);       % lower bounds on variables
 options.lu = ones (1,N);       % upper bounds on variables
