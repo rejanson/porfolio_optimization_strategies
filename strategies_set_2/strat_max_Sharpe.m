@@ -32,6 +32,7 @@ cplex.Model.obj = ret;
 cplex.Model.lb = lb;
 cplex.Model.ub = ub;
 cplex.addRows(beq, Aeq, beq);
+cplex.DisplayFunc = [];
 
 cplex.solve();
 

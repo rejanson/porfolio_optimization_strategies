@@ -7,7 +7,7 @@ global Q
 addpath('/Applications/CPLEX_Studio128/cplex/matlab/x86-64_osx');
 global mode 
 
-mode = 2015;
+mode = 2008;
 
 % Input files
 if mode == 2015
@@ -84,9 +84,9 @@ if mode ~= 2015
 end
 
 % Number of strategies
-strategy_functions = {'strat_equal_risk_contr' 'strat_lever_equal_risk_contr' 'strat_robust_optim' 'strat_buy_and_hold' 'strat_equally_weighted' 'strat_min_variance' 'strat_max_Sharpe' };
-strategy_names     = { 'Equal Risk Contributions Portfolio' 'Leveraged Equal Risk Contributions Portfolio' 'Robust Optimization Portfolio' 'Buy and Hold' 'Equally Weighted Portfolio' 'Minimum Variance Portfolio' 'Maximum Sharpe Ratio Portfolio'};
-N_strat = 3; % comment this in your code
+strategy_functions = {'strat_buy_and_hold' 'strat_equally_weighted' 'strat_min_variance' 'strat_max_Sharpe' 'strat_equal_risk_contr' 'strat_lever_equal_risk_contr' 'strat_robust_optim'};
+strategy_names     = { 'Buy and Hold' 'Equally Weighted Portfolio' 'Minimum Variance Portfolio' 'Maximum Sharpe Ratio Portfolio' 'Equal Risk Contributions Portfolio' 'Leveraged Equal Risk Contributions Portfolio' 'Robust Optimization Portfolio'};
+N_strat = 7; % comment this in your code
 %N_strat = length(strategy_functions); % uncomment this in your code
 fh_array = cellfun(@str2func, strategy_functions, 'UniformOutput', false);
 
@@ -127,7 +127,8 @@ for (period = 1:N_periods)
       end
 
       % Compute strategy
-      [x{strategy,period} cash{strategy,period}] = fh_array{strategy}(curr_positions, curr_cash, mu, Q, cur_prices);
+      [x{strategy,period} cash{strategy,period} proportion{strategy,period}] = ...
+          fh_array{strategy}(curr_positions, curr_cash, mu, Q, cur_prices);
 
       % Verify that strategy is feasible (you have enough budget to re-balance portfolio)
       % Check that cash account is >= 0
@@ -149,6 +150,48 @@ for (period = 1:N_periods)
    
 end
 
-% Plot results
+%% Plot results
 % figure(1);
 %%%%%%%%%%% Insert your code here %%%%%%%%%%%%
+%2015 - 2016
+for i = 1:N_strat
+    hold on
+    plot(1:size(data_prices, 1), portf_value{1, i});
+end
+legend(strategy_names);
+xlabel('Days');
+ylabel('Portfolio Values');
+
+figure
+% allocation under strategy 7
+if mode == 2015
+    area(cell2mat(proportion(7,:))');
+    xlabel('Period');
+    ylabel('Stock');
+    title('Proportional Shares of Min Variance');
+    legend(tickers);
+else 
+    %2008
+    %allocations for 3, 4, 7
+    plot(cell2mat(proportion(3,:))');
+    xlabel('Period');
+    ylabel('Stock');
+    title('Proportional Shares of Min Variance');
+    legend(tickers);
+    
+    figure
+    plot(cell2mat(proportion(4,:))');
+    xlabel('Period');
+    ylabel('Stock');
+    title('Proportional Shares of Max Sharpe');
+    legend(tickers);
+    
+    figure
+    plot(cell2mat(proportion(7,:))');
+    xlabel('Period');
+    ylabel('Stock');
+    title('Proportional Shares of Robust Optim');
+    legend(tickers);
+end
+
+
