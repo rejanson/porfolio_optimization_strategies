@@ -8,14 +8,17 @@ global Q
      x = x';
   end
 
+  Qw = Q * x;
   y = x .* (Q*x) ; 
   
   gval = [] ; 
   for h = 1:n
       cumulative_grad = 0;
+      
       for i = 1:n        
-        for j = i+1:n
-          Qw = Q * x;
+          
+        for j = i + 1:n
+          
           if i == h
               gradI = Qw(i) + Q(i, i) * x(i);
           else 
@@ -38,14 +41,14 @@ global Q
 
   %  finite_diff
     grad = zeros(n, 1);
-    diff = 1e-6;
+    interval = 1e-6;
     
     for i = 1:n
         x_minus = x;
-        x_minus(i) = x_minus(i) - diff;
+        x_minus(i) = x_minus(i) - interval;
         x_plus = x;
-        x_plus(i) = x_plus(i) + diff;
-        result = (computeObjERC(x_plus) - computeObjERC(x_minus)) / (2 * diff);
+        x_plus(i) = x_plus(i) + interval;
+        result = (computeObjERC(x_plus) - computeObjERC(x_minus)) / (2 * interval);
         
         grad(i) = result;
     end

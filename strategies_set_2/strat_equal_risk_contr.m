@@ -30,6 +30,7 @@ options.ipopt.jac_c_constant        = 'yes';
 options.ipopt.hessian_approximation = 'limited-memory';
 options.ipopt.mu_strategy           = 'adaptive';
 options.ipopt.tol                   = 1e-10;
+options.ipopt.print_level = 1;
 
 % The callback functions
 funcs.objective         = @computeObjERC;

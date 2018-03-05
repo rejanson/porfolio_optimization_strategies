@@ -4,6 +4,7 @@ format long
 
 global Q
 
+addpath('/Applications/CPLEX_Studio128/cplex/matlab/x86-64_osx');
 
 % Input files
 input_file_prices  = 'Daily_closing_prices.csv';
@@ -65,8 +66,8 @@ r_rf2008_2009 = 0.045;
 
 % Number of strategies
 strategy_functions = {'strat_equal_risk_contr' 'strat_lever_equal_risk_contr' 'strat_robust_optim' 'strat_buy_and_hold' 'strat_equally_weighted' 'strat_min_variance' 'strat_max_Sharpe' };
-strategy_names     = {'Buy and Hold' 'Equally Weighted Portfolio' 'Minimum Variance Portfolio' 'Maximum Sharpe Ratio Portfolio' 'Equal Risk Contributions Portfolio' 'Leveraged Equal Risk Contributions Portfolio' 'Robust Optimization Portfolio'};
-N_strat = 2; % comment this in your code
+strategy_names     = { 'Equal Risk Contributions Portfolio' 'Leveraged Equal Risk Contributions Portfolio' 'Robust Optimization Portfolio' 'Buy and Hold' 'Equally Weighted Portfolio' 'Minimum Variance Portfolio' 'Maximum Sharpe Ratio Portfolio'};
+N_strat = 3; % comment this in your code
 %N_strat = length(strategy_functions); % uncomment this in your code
 fh_array = cellfun(@str2func, strategy_functions, 'UniformOutput', false);
 
