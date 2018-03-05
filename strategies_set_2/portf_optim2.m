@@ -5,9 +5,16 @@ format long
 global Q
 
 addpath('/Applications/CPLEX_Studio128/cplex/matlab/x86-64_osx');
+global mode 
+
+mode = 2015;
 
 % Input files
-input_file_prices  = 'Daily_closing_prices.csv';
+if mode == 2015
+    input_file_prices  = 'Daily_closing_prices.csv';
+else
+    input_file_prices  = 'Daily_closing_prices20082009.csv';
+end
 
 % Read daily prices
 if(exist(input_file_prices,'file'))
@@ -34,18 +41,25 @@ dates_array = dates_array(:,1:3);
 % Find the number of trading days in Nov-Dec 2014 and
 % compute expected return and covariance matrix for period 1
 day_ind_start0 = 1;
-day_ind_end0 = length(find(dates_array(:,1)==2014));
+
+if mode == 2015
+    day_ind_end0 = length(find(dates_array(:,1)==2014));
+else
+    day_ind_end0 = length(find(dates_array(:,1)==2007));
+end
+
 cur_returns0 = data_prices(day_ind_start0+1:day_ind_end0,:) ./ data_prices(day_ind_start0:day_ind_end0-1,:) - 1;
 mu = mean(cur_returns0)';
 Q = cov(cur_returns0);
 
-% Remove datapoints for year 2014
+% Remove datapoints for year 2014/2007
 data_prices = data_prices(day_ind_end0+1:end,:);
 dates_array = dates_array(day_ind_end0+1:end,:);
 dates = dates(day_ind_end0+1:end,:);
 
 % Initial positions in the portfolio
 init_positions = [5000 950 2000 0 0 0 0 2000 3000 1500 0 0 0 0 0 0 1001 0 0 0]';
+
 
 % Initial value of the portfolio
 init_value = data_prices(1,:) * init_positions;
@@ -59,10 +73,15 @@ N_periods = 6*length(unique(dates_array(:,1))); % 6 periods per year
 N = length(tickers);
 N_days = length(dates);
 
+global r_rf;
 % Annual risk-free rate for years 2015-2016 is 2.5%
 r_rf = 0.025;
 % Annual risk-free rate for years 2008-2009 is 4.5%
 r_rf2008_2009 = 0.045;
+
+if mode ~= 2015
+    r_rf = r_rf2008_2009;
+end
 
 % Number of strategies
 strategy_functions = {'strat_equal_risk_contr' 'strat_lever_equal_risk_contr' 'strat_robust_optim' 'strat_buy_and_hold' 'strat_equally_weighted' 'strat_min_variance' 'strat_max_Sharpe' };
@@ -73,10 +92,18 @@ fh_array = cellfun(@str2func, strategy_functions, 'UniformOutput', false);
 
 for (period = 1:N_periods)
    % Compute current year and month, first and last day of the period
-   if(dates_array(1,1)==15)
-       cur_year  = 15 + floor(period/7);
+   if mode == 2015
+       if(dates_array(1,1)==15)
+           cur_year  = 15 + floor(period/7);
+       else
+           cur_year  = 2015 + floor(period/7);
+       end
    else
-       cur_year  = 2015 + floor(period/7);
+       if(dates_array(1,1)==8)
+           cur_year  = 8 + floor(period/7);
+       else
+           cur_year  = 2008 + floor(period/7);
+       end
    end
    cur_month = 2*rem(period-1,6) + 1;
    day_ind_start = find(dates_array(:,1)==cur_year & dates_array(:,2)==cur_month, 1, 'first');

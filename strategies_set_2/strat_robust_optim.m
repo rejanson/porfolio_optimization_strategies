@@ -6,16 +6,17 @@ function [x_optimal, cash_optimal, proportion_optimal] = strat_robust_optim(x_in
 portfolio_value =  cur_prices * x_init + cash_init;
 
 N = size(mu);
-n = N(1);
+N = N(1);
 
-ret_minVar = 0.025/6;
+w_minVar = cplexqp(Q, zeros(N,1) , [], [],  ones(1, N), [1;], zeros(N, 1), ones(N, 1));
+ret_minVar = w_minVar' * mu; %r_rf / 6;
 
 
 % Initial portfolio ("equally weighted" or "1/n")
-w0 = ones(n,1) ./ n;
+w0 = ones(N,1) ./ N;
 % Bounds on variables
-lb_rMV = zeros(n,1); 
-ub_rMV = inf*ones(n,1);
+lb_rMV = zeros(N,1); 
+ub_rMV = inf*ones(N,1);
 % Target portfolio return estimation error
 var_matr = diag(diag(Q));
 rob_init = w0' * var_matr * w0; % r.est.err. of 1/n portf
@@ -27,9 +28,9 @@ Portf_Retn = ret_minVar;
 
 
 % Formulate and solve robust mean-variance problem
-f_rMV = zeros(n,1); % objective function
+f_rMV = zeros(N,1); % objective function
 % Constraints
-A_rMV = sparse([ mu'; ones(1,n)]);
+A_rMV = sparse([ mu'; ones(1,N)]);
 lhs_rMV = [Portf_Retn; 1]; rhs_rMV = [inf; 1];
 % Create CPLEX model
 cplex_rMV = Cplex('Robust_MV');
@@ -43,9 +44,14 @@ cplex_rMV.addQCs(zeros(size(f_rMV)), var_matr, 'L', rob_bnd, {'qc_robust'});
 cplex_rMV.DisplayFunc = [];
 cplex_rMV.solve();
 
-proportion_optimal = cplex_rMV.Solution.x;
+if cplex_rMV.Solution.status == 3
+    proportion_optimal = x_init .* cur_prices' / portfolio_value;
+    x_optimal = x_init;
+else
+    proportion_optimal = cplex_rMV.Solution.x;
+    x_optimal = round(proportion_optimal * portfolio_value ./ (cur_prices' + 1e-9));
+end
 
-x_optimal = round(proportion_optimal * portfolio_value ./ (cur_prices' + 1e-2));
 
 transaction_fees = 5e-3 * sum(abs(x_optimal - x_init)' * cur_prices');
 
@@ -56,11 +62,6 @@ cash_optimal = cash_init + ...
 j = 0;
 cash_decrement = 1e2;
 while cash_optimal < 0
-%     for i = 1:N
-%         if x_optimal(i) > 0
-%             x_optimal(i) = x_optimal(i) - 1;
-%         endﬂ
-%     end
     j = j + 1;
     x_optimal = round(proportion_optimal * (portfolio_value -  cash_decrement * j) ...
         ./ (cur_prices' + 1e-2));
