@@ -4,6 +4,7 @@ function [ x_optimal, cash_optimal, proportion_optimal] = strat_lever_equal_risk
 %   Detailed explanation goes here
 
 global A_ineq A_eq
+global r_rf
 portfolio_value =  cur_prices * x_init + cash_init;
 
 N = size(mu);
@@ -11,8 +12,6 @@ N = N(1);
 
 A_eq = ones(1,N);
 b_eq = 2;
-
-r_rf = 0.025;
 
 % Inequality constraints
 A_ineq = [];
@@ -54,7 +53,7 @@ x_optimal = round(proportion_optimal * portfolio_value ./ (cur_prices'));
 
 transaction_fees = 5e-3 * sum(abs(x_optimal - x_init)' * cur_prices');
 
-interest_cost = r_rf / 6 * cash_init * -1;
+interest_cost = abs(r_rf / 6 * cash_init);
 cash_optimal = cash_init + ...
     (sum(cur_prices * x_init) - transaction_fees - cur_prices * x_optimal - interest_cost);
 

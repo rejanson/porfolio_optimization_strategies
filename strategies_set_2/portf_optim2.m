@@ -7,9 +7,19 @@ global Q
 addpath('/Applications/CPLEX_Studio128/cplex/matlab/x86-64_osx');
 global mode 
 
-mode = 2008;
 
-% Input files
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% Change this to either 2015 or 2008 to run for each year %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+mode = 2008; %2015 or 2008
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Input files
 if mode == 2015
     input_file_prices  = 'Daily_closing_prices.csv';
 else
@@ -130,12 +140,6 @@ for (period = 1:N_periods)
       [x{strategy,period} cash{strategy,period} proportion{strategy,period}] = ...
           fh_array{strategy}(curr_positions, curr_cash, mu, Q, cur_prices);
 
-      % Verify that strategy is feasible (you have enough budget to re-balance portfolio)
-      % Check that cash account is >= 0
-      % Check that we can buy new portfolio subject to transaction costs
-
-      %%%%%%%%%%% Insert your code here %%%%%%%%%%%%
-
       % Compute portfolio value
       portf_value{strategy}(day_ind_start:day_ind_end) = data_prices(day_ind_start:day_ind_end,:) * x{strategy,period} + cash{strategy,period};
 
@@ -154,6 +158,7 @@ end
 % figure(1);
 %%%%%%%%%%% Insert your code here %%%%%%%%%%%%
 %2015 - 2016
+
 for i = 1:N_strat
     hold on
     plot(1:size(data_prices, 1), portf_value{1, i});
@@ -165,10 +170,10 @@ ylabel('Portfolio Values');
 figure
 % allocation under strategy 7
 if mode == 2015
-    area(cell2mat(proportion(7,:))');
+    plot(cell2mat(proportion(7,:))');
     xlabel('Period');
     ylabel('Stock');
-    title('Proportional Shares of Min Variance');
+    title('Proportional Shares of Robust Optim');
     legend(tickers);
 else 
     %2008
