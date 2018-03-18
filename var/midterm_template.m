@@ -63,28 +63,28 @@ positions = [100 0 0 0 0 0 0 0 200 500 0 0 0 0 0 0 0 0 0 0]';
 %%%%% Insert your code here 
 
 %Historical
-gains1 = (data_prices(2:end,:) - data_prices(1:end - 1,:)) * positions;
-gains10 = (data_prices(11:end,:) - data_prices(1:end - 10,:)) * positions;
+loss1 = (data_prices(2:end,:) - data_prices(1:end - 1,:)) * positions;
+loss10 = (data_prices(10:end,:) - data_prices(1:end - 9,:)) * positions;
 
-VaR1 = prctile(gains1, 100 - 100 * alf);
-VaR10 = prctile(gains10, 100 - 100 * alf);
+VaR1 = prctile(loss1, 100 - 100 * alf);
+VaR10 = prctile(loss10, 100 - 100 * alf);
 
 CVaR1 = zeros(size(VaR1, 1), size(VaR1, 2));
 CVaR10 = zeros(size(VaR10, 1), size(VaR10, 2));
-for i = 1:size(gains1, 2)
+for i = 1:size(loss1, 2)
     sum_ret1 = [];
     sum_ret10 = [];
     
-    for j = 1:size(gains1, 1)
-        if gains1(j, i) <= VaR1(1, i)
-            sum_ret1 = [gains1(j, i) sum_ret1];
+    for j = 1:size(loss1, 1)
+        if loss1(j, i) <= VaR1(1, i)
+            sum_ret1 = [loss1(j, i) sum_ret1];
         end
     end
     CVaR1(1, i) = mean(sum_ret1);
     
-    for j = 1:size(gains10, 1)
-        if gains10(j, i) <= VaR10(1, i)
-            sum_ret10 = [gains10(j, i) sum_ret10];
+    for j = 1:size(loss10, 1)
+        if loss10(j, i) <= VaR10(1, i)
+            sum_ret10 = [loss10(j, i) sum_ret10];
         end
     end
     CVaR10(1, i) = mean(sum_ret10);
@@ -93,15 +93,15 @@ end
 % Normal
 
 % Compute Normal 1-day VaR from the data
-VaR1n = mean(gains1) + norminv(1 - alf,0,1)*std(gains1);
+VaR1n = mean(loss1) + norminv(1 - alf,0,1)*std(loss1);
 % Compute Normal 1-day CVaR from the data
-CVaR1n = mean(gains1) + (normpdf(norminv(1 - alf,0,1))/(1 - alf))*std(gains1);
+CVaR1n = mean(loss1) + (normpdf(norminv(1 - alf,0,1))/(1 - alf))*std(loss1);
 CVaR1n = CVaR1n * -1;
 
 % Compute Normal 10-day VaR from the data
-VaR10n = mean(gains10) + norminv(1 - alf,0,1)*std(gains10);
+VaR10n = mean(loss10) + norminv(1 - alf,0,1)*std(loss10);
 % Compute Normal 10-day CVaR from the data
-CVaR10n = mean(gains10) + (normpdf(norminv(1 - alf,0,1))/(1-alf))*std(gains10);
+CVaR10n = mean(loss10) + (normpdf(norminv(1 - alf,0,1))/(1-alf))*std(loss10);
 CVaR10n = CVaR10n * -1;
 
 fprintf('Historical 1-day VaR %4.1f%% = $%6.2f,   Historical 1-day CVaR %4.1f%% = $%6.2f\n', 100*alf, VaR1, 100*alf, CVaR1)
@@ -112,11 +112,11 @@ fprintf('    Normal 10-day VaR %4.1f%% = $%6.2f,       Normal 10-day CVaR %4.1f%
 
 % Plot a histogram of the distribution of losses in portfolio value for 1 day 
 figure(1)
-histogram(gains1, 'NumBins', 100);
+histogram(loss1, 'NumBins', 100);
 
 % Plot a histogram of the distribution of losses in portfolio value for 10 days
 figure(2)
-histogram(gains10, 'NumBins', 100);
+histogram(loss10, 'NumBins', 100);
 
 
 %% Question 1 Part 2
@@ -148,7 +148,6 @@ end
 
 
 %% Question 2
-clc;
 % Annual risk-free rate for years 2015-2016 is 2.5%
 r_rf = 0.025;
 
@@ -181,7 +180,7 @@ w_equallyWeighted = 1 / Na * ones(Na, 1);
 % % ? Leveraged equal risk contribution portfolio;
 % ? Efficient frontier of all assets including risk-free asset, if shorting of risk-free asset is
 efficient_frontier = [];
-rets = [0.0001:0.00005:0.02];
+rets = [0:0.00005:0.0089];
 for targetReturn = rets
     [x,fval] = cplexqp(Q, zeros(Na,1) , [-1 * mu'], [-1 * targetReturn],  [ones(1, Na)], [1;], ...
         zeros(Na, 1), ones(Na, 1));
@@ -199,11 +198,33 @@ text(sqrt(w_leveraged_ERC' * Q * w_leveraged_ERC) , mu' * w_leveraged_ERC, '\bul
 text(sqrt(w_minVar' * Q * w_minVar) , mu' * w_minVar, '\bullet minVar');
 text(sqrt(w_maxRet' * Q * w_maxRet) , mu' * w_maxRet, '\bullet maxRet');
 text(sqrt(w_equallyWeighted' * Q * w_equallyWeighted) , mu' * w_equallyWeighted, '\bullet ERC');
-text(0, r_rf/6, '\bullet Risk Free');
-axis([-1e-3 2.5e-2 -1e-3 1e-2])
+text(0, r_rf/252, '\bullet Risk Free');
+axis([-1e-3 4e-2 -1e-3 1e-2])
 %TODO: tangent 
-
-
+slope = 0.445;
+x = -1e-3:1e-4:2.5e-2;
+plot(x, slope * x + r_rf/252)
+hold off
 
 % Plot for Question 2, Part 2
-% figure(4);
+figure(4);
+plot(sqrt(efficient_frontier), rets);
+hold on
+scatter(sqrt(diag(Q)), mu);
+
+
+num_port = 1000;
+var_random = [];
+ret_random = [];
+for i = 1:1000
+    w_rand = rand(20,1);
+    w_rand = w_rand / sum(w_rand);
+    %scatter(sqrt(w_rand' * Q * w_rand), mu' * w_rand);
+    var_random = [var_random sqrt(w_rand' * Q * w_rand)];
+    ret_random = [ret_random mu' * w_rand];
+end
+
+scatter(var_random, ret_random);
+
+legend('Efficient Frontier', 'Individual Stocks', 'Random Portfolios');
+
