@@ -65,44 +65,28 @@ positions = [100 0 0 0 0 0 0 0 200 500 0 0 0 0 0 0 0 0 0 0]';
 %Historical
 loss1 = (data_prices(2:end,:) - data_prices(1:end - 1,:)) * positions;
 loss10 = (data_prices(10:end,:) - data_prices(1:end - 9,:)) * positions;
+loss1sorted = sort(-loss1)';
+loss10sorted = sort(-loss10)';
 
-VaR1 = prctile(loss1, 100 - 100 * alf);
-VaR10 = prctile(loss10, 100 - 100 * alf);
+VaR1 = loss1sorted(ceil((Ns-1) * alf));
+VaR10 = loss10sorted(ceil((Ns-1) * alf));
+CVaR1 = (1/((Ns-1)*(1-alf))) * ...
+    ((ceil((Ns-1)*alf)-(Ns-1)*alf) * VaR1 + sum(loss1sorted(ceil((Ns-1)*alf)+1:Ns-1)));
+CVaR10 = (1/((Ns-9)*(1-alf))) *  ...
+    ((ceil((Ns-9)*alf)-(Ns-9)*alf) * VaR10 + sum(loss10sorted(ceil((Ns-9)*alf)+1:Ns-9)));   
 
-CVaR1 = zeros(size(VaR1, 1), size(VaR1, 2));
-CVaR10 = zeros(size(VaR10, 1), size(VaR10, 2));
-for i = 1:size(loss1, 2)
-    sum_ret1 = [];
-    sum_ret10 = [];
-    
-    for j = 1:size(loss1, 1)
-        if loss1(j, i) <= VaR1(1, i)
-            sum_ret1 = [loss1(j, i) sum_ret1];
-        end
-    end
-    CVaR1(1, i) = mean(sum_ret1);
-    
-    for j = 1:size(loss10, 1)
-        if loss10(j, i) <= VaR10(1, i)
-            sum_ret10 = [loss10(j, i) sum_ret10];
-        end
-    end
-    CVaR10(1, i) = mean(sum_ret10);
-end
 
 % Normal
 
 % Compute Normal 1-day VaR from the data
-VaR1n = mean(loss1) + norminv(1 - alf,0,1)*std(loss1);
+VaR1n = mean(loss1sorted) + norminv(alf,0,1)*std(loss1sorted);
 % Compute Normal 1-day CVaR from the data
-CVaR1n = mean(loss1) + (normpdf(norminv(1 - alf,0,1))/(1 - alf))*std(loss1);
-CVaR1n = CVaR1n * -1;
+CVaR1n = mean(loss1sorted) + (normpdf(norminv(alf,0,1))/(1-alf))*std(loss1sorted);
 
 % Compute Normal 10-day VaR from the data
-VaR10n = mean(loss10) + norminv(1 - alf,0,1)*std(loss10);
+VaR10n = mean(loss10sorted) + norminv(alf,0,1)*std(loss10sorted);
 % Compute Normal 10-day CVaR from the data
-CVaR10n = mean(loss10) + (normpdf(norminv(1 - alf,0,1))/(1-alf))*std(loss10);
-CVaR10n = CVaR10n * -1;
+CVaR10n = mean(loss10sorted) + (normpdf(norminv(1 - alf,0,1))/(1-alf))*std(loss10sorted);
 
 fprintf('Historical 1-day VaR %4.1f%% = $%6.2f,   Historical 1-day CVaR %4.1f%% = $%6.2f\n', 100*alf, VaR1, 100*alf, CVaR1)
 fprintf('    Normal 1-day VaR %4.1f%% = $%6.2f,       Normal 1-day CVaR %4.1f%% = $%6.2f\n', 100*alf, VaR1n, 100*alf, CVaR1n)
@@ -112,11 +96,43 @@ fprintf('    Normal 10-day VaR %4.1f%% = $%6.2f,       Normal 10-day CVaR %4.1f%
 
 % Plot a histogram of the distribution of losses in portfolio value for 1 day 
 figure(1)
-histogram(loss1, 'NumBins', 100);
+[frequencyCounts, binLocations] = hist(loss1 * -1, 100);
+hold on
+bar(binLocations, frequencyCounts);
+line([VaR1 VaR1], [0 max(frequencyCounts)/2], 'Color', 'r', 'LineWidth', 1, 'LineStyle', '--');
+normfreq = ( 1/(std(loss1sorted)*sqrt(2*pi)) )  ...
+    * exp( -0.5*((binLocations-mean(loss1sorted))/std(loss1sorted)).^2 );
+normfreq = normfreq * sum(frequencyCounts)/sum(normfreq);
+plot(binLocations, normfreq, 'r', 'LineWidth', 3);
+line([VaR1n VaR1n], [0 max(frequencyCounts)/2], 'Color', 'r', 'LineWidth', 1, 'LineStyle', '-.');
+hold off;
+
+text(1.05*VaR1, max(frequencyCounts)/1.95, 'VaR1')
+text(0.7*VaR1n, max(frequencyCounts)/1.95, 'VaR1n')
+title('Frequency of Losses for a 1-day window')
+xlabel('1-day loss in $ value on 1 unit of stock')
+ylabel('Frequency')
+
 
 % Plot a histogram of the distribution of losses in portfolio value for 10 days
 figure(2)
-histogram(loss10, 'NumBins', 100);
+[frequencyCounts, binLocations] = hist(loss10 * -1, 100);
+hold on 
+bar(binLocations, frequencyCounts);
+line([VaR10 VaR10], [0 max(frequencyCounts)/2], 'Color', 'r', 'LineWidth', 1, 'LineStyle', '--');
+normfreq = ( 1/(std(loss10sorted)*sqrt(2*pi)) )  ...
+    * exp( -0.5*((binLocations-mean(loss10sorted))/std(loss10sorted)).^2 );
+normfreq = normfreq * sum(frequencyCounts)/sum(normfreq);
+plot(binLocations, normfreq, 'r', 'LineWidth', 3);
+line([VaR10n VaR10n], [0 max(frequencyCounts)/2], 'Color', 'r', 'LineWidth', 1, 'LineStyle', '-.');
+hold off;
+
+text(1.05 * VaR10, max(frequencyCounts)/1.9, 'VaR10')
+text(0.7 * VaR10n, max(frequencyCounts)/1.9, 'VaR10n')
+title('Frequency of Losses for a 10-day window')
+xlabel('1-day loss in $ value on 1 unit of stock')
+ylabel('Frequency')
+
 
 
 %% Question 1 Part 2
@@ -131,15 +147,17 @@ position_sequence = [position2; position3; position4];
 fprintf('Question 1 Part 2 \n');
 for h = 1:size(position_sequence, 1)
     pos = position_sequence(h, :);
-    gains1_p2 = (data_prices(2:end,:) - data_prices(1:end - 1,:)) * pos' ;
+    loss1_p2 = (data_prices(2:end,:) - data_prices(1:end - 1,:)) * pos' ;
 
     %historical 
-    VaR1 = prctile(gains1_p2, 100 - 100 * alf);
-    fprintf('Historical 1-day VaR %4.1f%% = $%6.2f ', 100*alf, VaR1);
+    loss1sorted_p2 = sort(-loss1_p2)';
+
+    VaR1_p2 = loss1sorted_p2(ceil((Ns-1) * alf));
+    fprintf('Historical 1-day VaR %4.1f%% = $%6.2f ', 100*alf, VaR1_p2);
     
     %normal 
-    VaR1n = mean(gains1_p2) + norminv(1 - alf,0,1)*std(gains1_p2);
-    fprintf('Normal 1-day VaR %4.1f%% = $%6.2f \n', 100*alf, VaR1n)
+    VaR1n_p2 = mean(loss1sorted_p2) + norminv(alf,0,1)*std(loss1sorted_p2);
+    fprintf('Normal 1-day VaR %4.1f%% = $%6.2f \n', 100*alf, VaR1n_p2)
 
 
 end
@@ -167,7 +185,7 @@ w_leveraged_ERC = 2 * w_ERC;
 
 w_minVar = cplexqp(Q, zeros(Na,1) , [], [],  ones(1, Na), [1;], zeros(Na, 1), ones(Na, 1));
 
-w_maxRet = cplexqp(zeros(Na,Na), mu , [], [],  ones(1, Na), [1;], zeros(Na, 1), ones(Na, 1));
+w_maxRet = cplexqp(zeros(Na,Na), -1 * mu , [], [],  ones(1, Na), [1;], zeros(Na, 1), ones(Na, 1));
 
 w_equallyWeighted = 1 / Na * ones(Na, 1);
 
@@ -204,6 +222,13 @@ axis([-1e-3 4e-2 -1e-3 1e-2])
 slope = 0.445;
 x = -1e-3:1e-4:2.5e-2;
 plot(x, slope * x + r_rf/252)
+
+legend('Efficient Frontier', 'Capital Market Line');
+
+title('Efficient Frontier and Capital Market Line')
+xlabel('STDEV')
+ylabel('Expected Return')
+
 hold off
 
 % Plot for Question 2, Part 2
@@ -227,4 +252,8 @@ end
 scatter(var_random, ret_random);
 
 legend('Efficient Frontier', 'Individual Stocks', 'Random Portfolios');
+title('Efficient Frontier vs Individual Stocks vs Random Portfolio')
+xlabel('STDEV')
+ylabel('Expected Return')
+
 
