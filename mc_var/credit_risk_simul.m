@@ -48,7 +48,6 @@ exposure(:, 1) = (1-recov_rate) .* exposure(:, 1);
 % Compute credit-state boundaries
 CS_Bdry = norminv( cumsum(prob(:,1:C-1), 2) );
 
-%% TODO: -------- Insert your code here -------- %
 
 if(~exist('scenarios_out.mat','file'))
     
